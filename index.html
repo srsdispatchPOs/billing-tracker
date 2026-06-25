@@ -8,24 +8,24 @@
 </head>
 <body>
     <div id="login-overlay" class="login-screen">
-    <div class="login-card">
-        <h2>SRS Billing Portal</h2>
-        <p>Authorized Personnel Only</p>
-        <form id="login-form" onsubmit="handleLogin(event)">
-            <div class="form-group">
-                <label>Email Address</label>
-                <input type="email" id="login-email" required autocomplete="username">
-            </div>
-            <div class="form-group">
-                <label>Password</label>
-                <input type="password" id="login-password" required autocomplete="current-password">
-            </div>
-            <button type="submit" class="login-submit-btn">Secure Login</button>
-        </form>
+        <div class="login-card">
+            <h2>SRS Billing Portal</h2>
+            <p>Authorized Personnel Only</p>
+            <form id="login-form" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="login-email" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="login-password" required autocomplete="current-password">
+                </div>
+                <button type="submit" class="login-submit-btn">Secure Login</button>
+            </form>
+        </div>
     </div>
-</div>
+
     <div class="dashboard-container">
-        <!-- Sidebar Navigation -->
         <aside class="sidebar">
             <h2>SRS Billing</h2>
             <nav>
@@ -39,9 +39,7 @@
             </div>
         </aside>
 
-        <!-- Main Content Area -->
         <main class="main-content">
-            <!-- VIEW 1: CUSTOMER INTAKE FORM -->
             <section id="intake-view" class="view-section">
                 <h2>New Customer Intake</h2>
                 <form id="intake-form" onsubmit="handleFormSubmit(event)">
@@ -69,7 +67,6 @@
                         </select>
                     </div>
 
-                    <!-- Hidden by default, shows only if Credit Card is picked -->
                     <div id="card-fields" class="hidden-fields">
                         <div class="form-group">
                             <label>Card Number</label>
@@ -90,7 +87,6 @@
                 </form>
             </section>
 
-            <!-- VIEW 2: BILLING QUEUE -->
             <section id="billing-view" class="view-section hidden">
                 <h2>Pending Billing Queue</h2>
                 <p class="subtitle">Secure processing area. Copy details to terminal, process, then hit "Confirm & Wipe Card".</p>
@@ -107,15 +103,31 @@
                             </tr>
                         </thead>
                         <tbody id="billing-queue-tbody">
-                            <!-- JavaScript will dynamically inject pending rows here -->
-                        </tbody>
+                            </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="history-view" class="view-section hidden">
+                <h2>Payment History</h2>
+                <p class="subtitle">Archive of processed transactions.</p>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Customer Name</th>
+                                <th>Service Provided</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-tbody">
+                            </tbody>
                     </table>
                 </div>
             </section>
         </main>
     </div>
 
-    <!-- Firebase SDK Scripts (Required for Database & Login connection) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
