@@ -55,17 +55,25 @@ function logout() {
 }
 
 // 2. INTERFACE VIEWS MANAGER
-function switchView(viewName) {
+function switchView(viewName, e) {
+    // 1. Hide all sections and remove active styling from buttons
     document.querySelectorAll('.view-section').forEach(section => section.classList.add('hidden'));
     document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
     
-    document.getElementById(`${viewName}-view`).classList.remove('hidden');
-    
-    if (event && event.target) {
-        event.target.classList.add('active');
+    // 2. Show the exact view requested
+    const targetView = document.getElementById(`${viewName}-view`);
+    if (targetView) {
+        targetView.classList.remove('hidden');
     }
     
-    // Trigger data loading based on the active tab
+    // 3. Highlight the clicked button safely
+    if (e && e.target) {
+        e.target.classList.add('active');
+    } else if (window.event && window.event.target) {
+        window.event.target.classList.add('active');
+    }
+    
+    // 4. Trigger data loading based on the active tab
     if (viewName === 'billing') { 
         loadBillingQueue(); 
     } else if (viewName === 'history') { 
