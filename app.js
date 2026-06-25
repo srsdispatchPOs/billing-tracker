@@ -1,6 +1,6 @@
 // 1. YOUR SECURE DATABASE CONNECTION (Standard Script Format)
 const firebaseConfig = {
-    apiKey: "YOUR_ACTUAL_API_KEY_HERE",
+    apiKey: "AIzaSyA3zCFtlTIBPV8JUR9j7UiNGdIIcMPKpT8",
     authDomain: "billing-tracker-a9471.firebaseapp.com",
     databaseURL: "https://billing-tracker-a9471-default-rtdb.firebaseio.com",
     projectId: "billing-tracker-a9471",
