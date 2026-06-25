@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Intake & Billing Console</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="login-overlay" class="login-screen">
+    <div class="login-card">
+        <h2>SRS Billing Portal</h2>
+        <p>Authorized Personnel Only</p>
+        <form id="login-form" onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" id="login-email" required autocomplete="username">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="login-password" required autocomplete="current-password">
+            </div>
+            <button type="submit" class="login-submit-btn">Secure Login</button>
+        </form>
+    </div>
+</div>
+    <div class="dashboard-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <h2>SRS Billing</h2>
+            <nav>
+                <button class="nav-btn active" onclick="switchView('intake')">Customer Intake</button>
+                <button class="nav-btn" onclick="switchView('billing')">Billing Queue</button>
+                <button class="nav-btn" onclick="switchView('history')">Payment History</button>
+            </nav>
+            <div class="user-profile">
+                <p id="user-display">Loading user...</p>
+                <button onclick="logout()" class="logout-btn">Sign Out</button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- VIEW 1: CUSTOMER INTAKE FORM -->
+            <section id="intake-view" class="view-section">
+                <h2>New Customer Intake</h2>
+                <form id="intake-form" onsubmit="handleFormSubmit(event)">
+                    <div class="form-group">
+                        <label>Customer/Business Name</label>
+                        <input type="text" id="cust-name" required autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label>Service Provided</label>
+                        <input type="text" id="cust-service" placeholder="e.g., Dumpster Rental, Special Haul" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Price to Charge ($)</label>
+                        <input type="number" id="cust-price" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Payment Method</label>
+                        <select id="payment-method" onchange="toggleCardFields()">
+                            <option value="Invoice">Invoice / Check / Other</option>
+                            <option value="Credit Card">Credit Card</option>
+                        </select>
+                    </div>
+
+                    <!-- Hidden by default, shows only if Credit Card is picked -->
+                    <div id="card-fields" class="hidden-fields">
+                        <div class="form-group">
+                            <label>Card Number</label>
+                            <input type="text" id="card-num" maxlength="16" placeholder="0000111122223333">
+                        </div>
+                        <div class="form-inline">
+                            <div class="form-group">
+                                <label>Exp Date</label>
+                                <input type="text" id="card-exp" placeholder="MM/YY" maxlength="5">
+                            </div>
+                            <div class="form-group">
+                                <label>CVV</label>
+                                <input type="text" id="card-cvv" placeholder="000" maxlength="4">
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="submit-btn">Submit to Billing</button>
+                </form>
+            </section>
+
+            <!-- VIEW 2: BILLING QUEUE -->
+            <section id="billing-view" class="view-section hidden">
+                <h2>Pending Billing Queue</h2>
+                <p class="subtitle">Secure processing area. Copy details to terminal, process, then hit "Confirm & Wipe Card".</p>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Customer</th>
+                                <th>Service</th>
+                                <th>Amount</th>
+                                <th>Payment Info</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="billing-queue-tbody">
+                            <!-- JavaScript will dynamically inject pending rows here -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Firebase SDK Scripts (Required for Database & Login connection) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
