@@ -1,21 +1,18 @@
-// 1. YOUR SECURE DATABASE CONNECTION
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+// 1. YOUR SECURE DATABASE CONNECTION (Standard Script Format)
 const firebaseConfig = {
-  apiKey: "AIzaSyA3zCFtlTIBPV8JUR9j7UiNGdIIcMPKpT8",
-  authDomain: "billing-tracker-a9471.firebaseapp.com",
-  projectId: "billing-tracker-a9471",
-  storageBucket: "billing-tracker-a9471.firebasestorage.app",
-  messagingSenderId: "994482566196",
-  appId: "1:994482566196:web:3936c5988b3ca40b714661",
-  measurementId: "G-VWQ5WLQZNL"
+    apiKey: "YOUR_ACTUAL_API_KEY_HERE",
+    authDomain: "billing-tracker-a9471.firebaseapp.com",
+    databaseURL: "https://billing-tracker-a9471-default-rtdb.firebaseio.com",
+    projectId: "billing-tracker-a9471",
+    storageBucket: "billing-tracker-a9471.appspot.com",
+    messagingSenderId: "994482566196",
+    appId: "1:994482566196:web:3936c5988b3ca40b714661"
 };
+
+// Initialize Firebase using the global window objects (No 'import' statements needed)
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
+const auth = firebase.auth();
 
 // 1.5 AUTHENTICATION ENGINE
 // This listener runs automatically whenever the application loads or state changes
