@@ -36,11 +36,16 @@ auth.onAuthStateChanged((user) => {
 
 // Run when user hits "Secure Login"
 function handleLogin(e) {
-    e.preventDefault();
+    if (e) e.preventDefault(); // <-- This stops the page from erasing and reloading!
+    
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password').value;
 
     auth.signInWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+            // Success! The auth.onAuthStateChanged listener will handle the rest
+            alert("Login successful!");
+        })
         .catch(error => {
             alert("Access Denied: " + error.message);
         });
