@@ -54,26 +54,32 @@ function logout() {
     });
 }
 
-// 2. INTERFACE VIEWS MANAGER
+// 2. INTERFACE VIEWS MANAGER (BULLETPROOF VERSION)
 function switchView(viewName, e) {
     // 1. Hide all sections and remove active styling from buttons
     document.querySelectorAll('.view-section').forEach(section => section.classList.add('hidden'));
     document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
     
-    // 2. Show the exact view requested
+    // 2. Show the exact view requested safely
     const targetView = document.getElementById(`${viewName}-view`);
     if (targetView) {
         targetView.classList.remove('hidden');
     }
     
-    // 3. Highlight the clicked button safely
+    // 3. Highlight the clicked button ONLY if a real click event happened
     if (e && e.target) {
         e.target.classList.add('active');
-    } else if (window.event && window.event.target) {
-        window.event.target.classList.add('active');
+    } else {
+        // Fallback: Find the matching sidebar nav button by its view name text if loaded programmatically
+        const navButtons = document.querySelectorAll('.nav-btn');
+        navButtons.forEach(btn => {
+            if (btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(`'${viewName}'`)) {
+                btn.classList.add('active');
+            }
+        });
     }
     
-    // 4. Trigger data loading based on the active tab
+    // 4. Trigger data loading safely based on the active tab
     if (viewName === 'billing') { 
         loadBillingQueue(); 
     } else if (viewName === 'history') { 
