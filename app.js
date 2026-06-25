@@ -38,6 +38,7 @@ function handleLogin(e) {
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password').value;
 
+
     auth.signInWithEmailAndPassword(email, password)
         .then((userCredential) => {
             // Success! The auth.onAuthStateChanged listener will handle the rest
@@ -89,6 +90,7 @@ function handleFormSubmit(e) {
     const service = document.getElementById('cust-service').value;
     const price = document.getElementById('cust-price').value;
     const method = document.getElementById('payment-method').value;
+    const notes = document.getElementById('cust-notes').value;
     
     // Construct transaction payload
     let transactionData = {
@@ -98,6 +100,7 @@ function handleFormSubmit(e) {
         priceCharged: parseFloat(price).toFixed(2),
         paymentMethod: method,
         paymentStatus: "Pending Billing",
+        officeNotes: notes || "None",
         // Default sensitive data fields to empty
         cardNumber: "N/A",
         cardExp: "N/A",
@@ -138,18 +141,25 @@ function loadBillingQueue() {
             const id = childSnapshot.key;
             const data = childSnapshot.val();
             
+            // Format how the payment data displays in the queue
             let pinfo = "";
             if (data.paymentMethod === 'Credit Card') {
                 pinfo = `<strong>Card:</strong> ${data.cardNumber}<br><small>Exp: ${data.cardExp} | CVV: ${data.cardCvv}</small>`;
             } else {
-                pinfo = `<em>Invoice Client</em>`;
+                pinfo = `<em>${data.paymentMethod}</em>`;
             }
+
+            // Fallback safety check in case older test entries don't have the notes field yet
+            const displayNotes = data.officeNotes ? data.officeNotes : "None";
 
             const row = `
                 <tr>
                     <td>${data.dateAdded.split(',')[0]}</td>
                     <td><strong>${data.customerName}</strong></td>
-                    <td>${data.serviceProvided}</td>
+                    <td>
+                        <strong>${data.serviceProvided}</strong><br>
+                        <small style="color:#7f8c8d;">Notes: ${displayNotes}</small>
+                    </td>
                     <td><strong>$${data.priceCharged}</strong></td>
                     <td>${pinfo}</td>
                     <td>
