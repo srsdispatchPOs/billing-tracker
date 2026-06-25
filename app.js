@@ -15,7 +15,6 @@ const database = firebase.database();
 const auth = firebase.auth();
 
 // 1.5 AUTHENTICATION ENGINE
-// This listener runs automatically whenever the application loads or state changes
 auth.onAuthStateChanged((user) => {
     const loginOverlay = document.getElementById('login-overlay');
     const userDisplay = document.getElementById('user-display');
@@ -38,10 +37,8 @@ function handleLogin(e) {
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password').value;
 
-
     auth.signInWithEmailAndPassword(email, password)
         .then((userCredential) => {
-            // Success! The auth.onAuthStateChanged listener will handle the rest
             alert("Login successful!");
         })
         .catch(error => {
@@ -57,19 +54,23 @@ function logout() {
     });
 }
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-
 // 2. INTERFACE VIEWS MANAGER
 function switchView(viewName) {
     document.querySelectorAll('.view-section').forEach(section => section.classList.add('hidden'));
     document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
     
     document.getElementById(`${viewName}-view`).classList.remove('hidden');
-    event.target.classList.add('active');
     
-    if (viewName === 'billing') { loadBillingQueue(); }
+    if (event && event.target) {
+        event.target.classList.add('active');
+    }
+    
+    // Trigger data loading based on the active tab
+    if (viewName === 'billing') { 
+        loadBillingQueue(); 
+    } else if (viewName === 'history') { 
+        loadPaymentHistory(); 
+    }
 }
 
 function toggleCardFields() {
@@ -185,4 +186,36 @@ function processAndWipeCard(id) {
         .then(() => alert("Transaction marked Paid. Sensitive data permanently deleted."))
         .catch(error => alert("Error updating record: " + error.message));
     }
+}
+
+// 6. HISTORICAL ARCHIVE ENGINE (STREAMLINED VIEW)
+function loadPaymentHistory() {
+    const tbody = document.getElementById('history-tbody');
+    
+    // Sync entries with status 'Paid'
+    database.ref('transactions').orderByChild('paymentStatus').equalTo('Paid')
+    .on('value', (snapshot) => {
+        tbody.innerHTML = "";
+        if (!snapshot.exists()) {
+            tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;color:#7f8c8d;">No historical transactions found.</td></tr>`;
+            return;
+        }
+        
+        snapshot.forEach((childSnapshot) => {
+            const data = childSnapshot.val();
+            const displayNotes = data.officeNotes ? data.officeNotes : "None";
+            
+            const row = `
+                <tr>
+                    <td><strong>${data.customerName}</strong></td>
+                    <td>
+                        <strong>${data.serviceProvided}</strong><br>
+                        <small style="color:#7f8c8d;">Notes: ${displayNotes}</small>
+                    </td>
+                    <td><span style="background:#e8f8f5;color:#2ecc71;padding:4px 8px;border-radius:4px;font-size:12px;font-weight:bold;">Paid</span></td>
+                </tr>
+            `;
+            tbody.innerHTML += row;
+        });
+    });
 }
