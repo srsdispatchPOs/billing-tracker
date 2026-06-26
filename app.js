@@ -14,6 +14,9 @@ firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 const auth = firebase.auth();
 
+// Generate a random unique ID for this specific browser tab session
+const mySessionId = "session_" + Math.random().toString(36).substr(2, 9);
+
 // 1.5 AUTHENTICATION ENGINE
 auth.onAuthStateChanged((user) => {
     const loginOverlay = document.getElementById('login-overlay');
@@ -116,6 +119,7 @@ function handleFormSubmit(e) {
         paymentMethod: method,
         paymentStatus: "Pending Billing",
         officeNotes: notes || "None",
+        submittedBySession: mySessionId, // <-- tag the submitter's unique session ID
         // Default sensitive data fields to empty
         cardNumber: "N/A",
         cardExp: "N/A",
@@ -155,15 +159,24 @@ function loadBillingQueue() {
             return;
         }
         
-        // --- AUDIO CHIME LOGIC ---
+        // --- BULLETPROOF EXCLUSIONARY AUDIO CHIME LOGIC ---
         const currentCount = snapshot.numChildren();
         if (currentCount > lastCount && lastCount !== 0) {
-            // Play a clean notification ding sound
-            const alertSound = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-84.wav");
-            alertSound.play().catch(error => console.log("Audio waiting for user click: ", error));
+            
+            // Get the absolute newest transaction added to the database
+            let newestTx = null;
+            snapshot.forEach((childSnapshot) => {
+                newestTx = childSnapshot.val(); 
+            });
+
+            // Play sound ONLY if the transaction came from a DIFFERENT browser session
+            if (newestTx && newestTx.submittedBySession !== mySessionId) {
+                const alertSound = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-84.wav");
+                alertSound.play().catch(error => console.log("Audio waiting for user click: ", error));
+            }
         }
         lastCount = currentCount; // Update baseline count
-        // -------------------------
+        // --------------------------------------------------
         
         snapshot.forEach((childSnapshot) => {
             const id = childSnapshot.key;
