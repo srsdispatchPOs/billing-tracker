@@ -171,7 +171,7 @@ function loadBillingQueue() {
 
             // Play sound ONLY if the transaction came from a DIFFERENT browser session
             if (newestTx && newestTx.submittedBySession !== mySessionId) {
-                const alertSound = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-84.wav");
+                const alertSound = new Audio("https://www.myinstants.com/media/sounds/spongebob-fail.mp3");
                 alertSound.play().catch(error => console.log("Audio waiting for user click: ", error));
             }
         }
