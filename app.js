@@ -27,6 +27,10 @@ auth.onAuthStateChanged((user) => {
         loginOverlay.classList.add('hidden');
         userDisplay.innerText = `Logged in as: ${user.email}`;
         switchView('intake'); // Default to entry view
+        
+        // --- GLOBAL SOUND ENGINE START ---
+        // Force the app to listen for new entries immediately on login, even in the background!
+        startGlobalAudioListener();
     } else {
         // No user logged in. Force screen visibility
         loginOverlay.classList.remove('hidden');
@@ -119,7 +123,7 @@ function handleFormSubmit(e) {
         paymentMethod: method,
         paymentStatus: "Pending Billing",
         officeNotes: notes || "None",
-        submittedBySession: mySessionId, // <-- tag the submitter's unique session ID
+        submittedBySession: mySessionId, // tag the submitter's unique session ID
         // Default sensitive data fields to empty
         cardNumber: "N/A",
         cardExp: "N/A",
@@ -143,46 +147,49 @@ function handleFormSubmit(e) {
         .catch(error => alert("Submission error: " + error.message));
 }
 
-// 4. DATA SYNCHRONIZATION AND RENDER (READING FROM DB WITH AUDIO ALERT)
-let lastCount = 0; // Tracks the queue size so it only dings on NEW entries
+// 4. GLOBAL AUDIO ALERT ENGINE (RUNS CONSTANTLY IN BACKGROUND)
+let globalLastCount = -1; // -1 ensures it baselines perfectly on startup
 
-function loadBillingQueue() {
-    const tbody = document.getElementById('billing-queue-tbody');
-    
-    // Sync entries with status 'Pending Billing' in real-time
+function startGlobalAudioListener() {
     database.ref('transactions').orderByChild('paymentStatus').equalTo('Pending Billing')
     .on('value', (snapshot) => {
-        tbody.innerHTML = "";
-        if (!snapshot.exists()) {
-            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#7f8c8d;">No pending transactions in queue.</td></tr>`;
-            lastCount = 0; // Reset count if queue clears out
-            return;
-        }
+        const currentCount = snapshot.exists() ? snapshot.numChildren() : 0;
         
-        // --- BULLETPROOF EXCLUSIONARY AUDIO CHIME LOGIC ---
-        const currentCount = snapshot.numChildren();
-        if (currentCount > lastCount && lastCount !== 0) {
+        // If the database count grows and it's not the initial application startup load
+        if (globalLastCount !== -1 && currentCount > globalLastCount) {
             
-            // Get the absolute newest transaction added to the database
+            // Grab the absolute newest item added to the DB
             let newestTx = null;
             snapshot.forEach((childSnapshot) => {
                 newestTx = childSnapshot.val(); 
             });
 
-            // Play sound ONLY if the transaction came from a DIFFERENT browser session
+            // CRITICAL CHECK: Only ding if it was submitted by someone else!
             if (newestTx && newestTx.submittedBySession !== mySessionId) {
                 const alertSound = new Audio("https://www.myinstants.com/media/sounds/spongebob-fail.mp3");
-                alertSound.play().catch(error => console.log("Audio waiting for user click: ", error));
+                alertSound.play().catch(error => console.log("Audio waiting for user click/interaction: ", error));
             }
         }
-        lastCount = currentCount; // Update baseline count
-        // --------------------------------------------------
+        globalLastCount = currentCount; // sync background count
+    });
+}
+
+// 5. DATA SYNCHRONIZATION AND RENDER (UI DISPLAY ONLY)
+function loadBillingQueue() {
+    const tbody = document.getElementById('billing-queue-tbody');
+    
+    database.ref('transactions').orderByChild('paymentStatus').equalTo('Pending Billing')
+    .on('value', (snapshot) => {
+        tbody.innerHTML = "";
+        if (!snapshot.exists()) {
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#7f8c8d;">No pending transactions in queue.</td></tr>`;
+            return;
+        }
         
         snapshot.forEach((childSnapshot) => {
             const id = childSnapshot.key;
             const data = childSnapshot.val();
             
-            // Format how the payment data displays in the queue
             let pinfo = "";
             if (data.paymentMethod === 'Credit Card') {
                 pinfo = `<strong>Card:</strong> ${data.cardNumber}<br><small>Exp: ${data.cardExp} | CVV: ${data.cardCvv}</small>`;
@@ -190,7 +197,6 @@ function loadBillingQueue() {
                 pinfo = `<em>${data.paymentMethod}</em>`;
             }
 
-            // Fallback safety check in case older test entries don't have the notes field yet
             const displayNotes = data.officeNotes ? data.officeNotes : "None";
 
             const row = `
@@ -213,10 +219,9 @@ function loadBillingQueue() {
     });
 }
 
-// 5. THE DATA PURGE ACTION (DELETING THE CARD FROM THE TRACKER COMPLETELY)
+// 6. THE DATA PURGE ACTION (DELETING THE CARD FROM THE TRACKER COMPLETELY)
 function processAndWipeCard(id) {
     if (confirm("Are you sure you want to mark this as Paid and permanently wipe card data? This cannot be undone.")) {
-        // Explicitly rewrite specific keys to completely purge card data fields
         database.ref(`transactions/${id}`).update({
             paymentStatus: "Paid",
             cardNumber: "WIPED_BY_BILLING",
@@ -228,11 +233,10 @@ function processAndWipeCard(id) {
     }
 }
 
-// 6. HISTORICAL ARCHIVE ENGINE (STREAMLINED VIEW)
+// 7. HISTORICAL ARCHIVE ENGINE (STREAMLINED VIEW)
 function loadPaymentHistory() {
     const tbody = document.getElementById('history-tbody');
     
-    // Sync entries with status 'Paid'
     database.ref('transactions').orderByChild('paymentStatus').equalTo('Paid')
     .on('value', (snapshot) => {
         tbody.innerHTML = "";
