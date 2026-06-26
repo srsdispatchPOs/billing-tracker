@@ -139,7 +139,9 @@ function handleFormSubmit(e) {
         .catch(error => alert("Submission error: " + error.message));
 }
 
-// 4. DATA SYNCHRONIZATION AND RENDER (READING FROM DB)
+// 4. DATA SYNCHRONIZATION AND RENDER (READING FROM DB WITH AUDIO ALERT)
+let lastCount = 0; // Tracks the queue size so it only dings on NEW entries
+
 function loadBillingQueue() {
     const tbody = document.getElementById('billing-queue-tbody');
     
@@ -149,8 +151,19 @@ function loadBillingQueue() {
         tbody.innerHTML = "";
         if (!snapshot.exists()) {
             tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#7f8c8d;">No pending transactions in queue.</td></tr>`;
+            lastCount = 0; // Reset count if queue clears out
             return;
         }
+        
+        // --- AUDIO CHIME LOGIC ---
+        const currentCount = snapshot.numChildren();
+        if (currentCount > lastCount && lastCount !== 0) {
+            // Play a clean notification ding sound
+            const alertSound = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-84.wav");
+            alertSound.play().catch(error => console.log("Audio waiting for user click: ", error));
+        }
+        lastCount = currentCount; // Update baseline count
+        // -------------------------
         
         snapshot.forEach((childSnapshot) => {
             const id = childSnapshot.key;
